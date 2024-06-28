@@ -6,10 +6,22 @@ import os.path
 
 from PySide6.QtWidgets import QMainWindow, QTextEdit, QFileDialog
 
+import webbrowser
+
 class EditGcode(QMainWindow):
+
+    # opens the gcode folder
+    @staticmethod
+    def gcode():
+        webbrowser.open("https://stackoverflow.com/questions/68645/class-static-variables-and-methods")
+
+    # opens the path with the entire code
+    @staticmethod
+    def code():
+        print("n")
+
     def __init__(self,gcode):
         super().__init__()
-
 
         self.fileName = gcode
 
@@ -32,8 +44,8 @@ class EditGcode(QMainWindow):
         open_action.triggered.connect(self.open_trig)
         reset_action.triggered.connect(self.reset)
 
-        gcode_action.triggered.connect(self.gcode)
-        code_action.triggered.connect(self.code)
+        gcode_action.triggered.connect(EditGcode.gcode)
+        code_action.triggered.connect(EditGcode.code)
 
         self.editor = QTextEdit()
 
@@ -67,10 +79,10 @@ class EditGcode(QMainWindow):
             self.fileName = fileName
             self.setWindowTitle(str(os.path.basename(fileName)) + "[*]")
            
-    #
+    # set default opening location to the gcode folder
     def open_trig(self):
         fileName,_ = QFileDialog.getOpenFileName(self, "Open File",
-                                                    "/home",
+                                                    "/home/",
                                                     "Text (*.txt);;All files(*.*)")
         
         if fileName:
@@ -84,13 +96,5 @@ class EditGcode(QMainWindow):
     def reset(self):
         self.setWindowTitle("GCode Editor [*]")
         self.editor.setPlainText("")
-
-    # make this the same as mainwindow (can i call it?)
-    def gcode(self):
-        print("g")
-
-    # make this the same as mainwindow (can i call it?)
-    def code(self):
-        print("c")
 
 

@@ -13,21 +13,38 @@ from PySide6.QtWidgets import QMainWindow, QFileDialog
 #     pyside6-uic form.ui -o ui_form.py, or
 #     pyside2-uic form.ui -o ui_form.py
 
-from ui_form_6_6 import Ui_MainWindow
-from editgcode import EditGcode
-from portselection import PortSelection
+from modules.ui_form import Ui_MainWindow
+from modules.editgcode import EditGcode
+from modules.portselection import PortSelection
+from modules.toarduino import ToArduino
 import webbrowser
 
 class MainWindow(QMainWindow, Ui_MainWindow):
+
     def __init__(self, app):
         super().__init__()
 
+        # Variables to see if the EditGcode window is active and whether there is any Gcode file loaded
         self.gedit = None
         self.loadedGcode = None
-        self.sel_port = None
 
+        # Variables for port selection
+        self.sel_port = None
+        self.port = None # add a way to get this port
+
+        # Sets the settings to default upon initialization
+        self.fileName = "default"
+        self.set_settings(self.fileName)
+
+        # Sets up the UI
         self.setupUi(self)
         self.app = app
+
+        # insert directory
+        self.stopcode = ""
+
+        # This is where the ToArduino() instance will live
+        self.interpretor = None
 
         self.actionSave.triggered.connect(self.save)
         self.actionSave_As.triggered.connect(self.saveAs)
@@ -69,39 +86,55 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     #### Menubar functions
 
-    # 
+    # Saves to the file called "saved", or another file if that is open
     def save(self):
         print("boys")
 
-    # Takes the current state of everything and saves it to a file
+    # Saves everything to a new file
     def saveAs(self):
         print("Finally")
     
-    #
+    # Loads a file
     def load(self):
-        print("l")
+        fileName,_ = QFileDialog.getOpenFileName(self, "Open File",
+                                                    "/home/",
+                                                    "Text (*.txt);;All files(*.*)")
+        
+        if fileName:
+            self.fileName = str(fileName)
+            self.set_settings(fileName)
 
-    #
+    # Sets the settings to the active file. INPROGRESS
+    def set_settings(self,fileName):
+        self.gedit = None
+        self.loadedGcode = None
+
+        self.sel_port = None
+        self.port = None # add a way to get this port
+
+        self.fileName = "default"
+
+    # Sets everything to the default
     def reset(self):
-        print("r")
+        self.set_settings(self.fileName)
 
     #
     def ports(self):
         if self.sel_port is None:
-            self.sel_port = PortSelection()
+            self.sel_port = PortSelection(self)
         self.sel_port.show()
     
     #
     def gcode(self):
-        print("g")
+        EditGcode.gcode()
     
     #
     def code(self):
-        print("c")
+        EditGcode.code()
 
     #
     def documentation(self):
-        webbrowser.open("")
+        webbrowser.open("https://github.com/sk4123/Custom_XY_Stage")
 
 
 
@@ -146,11 +179,11 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # 
     def go(self):
-        print("g")
+        ToArduino(self.port,self.loadedGcode).sendToArduino()
 
     #
     def stop_running(self):
-        print("s")
+        ToArduino(self.port,self.stopcode).sendToArduino()
 
 
 
@@ -187,7 +220,7 @@ class MainWindow(QMainWindow, Ui_MainWindow):
 
     # a place to read the x
     def get_x(self):
-        return self.x_input.text()
+        print("x")
     
     # send the x
 
@@ -247,9 +280,10 @@ class MainWindow(QMainWindow, Ui_MainWindow):
             self.gedit = EditGcode(self.loadedGcode)
         self.gedit.show()
 
-    # 
+    # set default to the gcode folders
     def loadGcode(self):
         fileName,_ = QFileDialog.getOpenFileName(self, "Open File",
-                                                      "/home",
+                                                      "/home/",
                                                       "Text (*.txt);;All files(*.*)")
-        self.loadedGcode = os.path.join(os.path.dirname(os.path.abspath(fileName)),fileName)
+        if fileName:
+            self.loadedGcode = os.path.join(os.path.dirname(os.path.abspath(fileName)),fileName)

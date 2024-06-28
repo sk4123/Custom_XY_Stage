@@ -9,8 +9,11 @@ import serial.tools.list_ports
 from PySide6.QtWidgets import QWidget, QPushButton, QLineEdit, QListWidget, QVBoxLayout
 
 class PortSelection(QWidget):
-    def __init__(self):
+
+    def __init__(self,master):
         super().__init__()
+
+        self.master = master
         
         self.setWindowTitle("Arduino Serial Port Selection")
 
@@ -19,7 +22,7 @@ class PortSelection(QWidget):
         self.label = QListWidget()
         self.label.addItems(self.get_ardus())
 
-        self.type = QLineEdit("Type the number of the chosen Arduino here")
+        self.type = QLineEdit("Type the port, exactly as shown, here")
         self.okay = QPushButton("Select")
 
         self.okay.released.connect(self.selection)
@@ -36,5 +39,5 @@ class PortSelection(QWidget):
     
     #
     def selection(self):
-        print(f"You selected: {self.type.text()}")
+        self.master.port = self.type.text()
         
